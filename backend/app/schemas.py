@@ -27,6 +27,29 @@ class Quiz(BaseModel):
     is_published: bool
 
 
+class TopicCreate(BaseModel):
+    title: str
+    description: str | None = None
+    icon: str | None = None
+    order: int = 0
+    is_published: bool = False
+
+
+class LessonCreate(BaseModel):
+    topic_id: int
+    title: str
+    order: int = 0
+    content: list = []
+    is_published: bool = False
+
+
+class QuizCreate(BaseModel):
+    lesson_id: int | None = None
+    title: str
+    questions: list = []
+    is_published: bool = False
+
+
 class ProgressIn(BaseModel):
     lesson_id: int | None = None
     quiz_id: int | None = None

@@ -1,9 +1,9 @@
 import pytest
-from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
 from app.config import Settings, get_settings
-from app.telegram_auth import require_admin, verify_init_data
+from app.main import app
+from app.telegram_auth import verify_init_data
 
 ADMIN_ID = 777
 TEST_BOT_TOKEN = "test-bot-token"  # noqa: S105 - test fixture only
@@ -13,18 +13,11 @@ def _test_settings() -> Settings:
     return Settings(bot_token=TEST_BOT_TOKEN, admin_id=ADMIN_ID, db_path=":memory:")
 
 
-probe_app = FastAPI()
-probe_app.dependency_overrides[get_settings] = _test_settings
-
-
-@probe_app.get("/api/admin/_probe")
-def probe(user: dict = Depends(require_admin)):
-    return {"ok": True}
-
-
 @pytest.fixture
 def client():
-    return TestClient(probe_app)
+    app.dependency_overrides[get_settings] = _test_settings
+    yield TestClient(app)
+    app.dependency_overrides.pop(get_settings, None)
 
 
 def test_rejects_missing_init_data(client):
