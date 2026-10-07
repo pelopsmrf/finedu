@@ -54,3 +54,27 @@ body {
 .bottom-nav__label {
   font-size: 12px;
 }
+
+.topic-list,
+.lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.topic-card,
+.lesson-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f5f6fa;
+  text-decoration: none;
+  color: #111;
+}
+
+.topic-card__title,
+.topic-card__body {
+  font-weight: 600;
+}
