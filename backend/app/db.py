@@ -1,5 +1,7 @@
 import sqlite3
 
+from app.config import get_settings
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS topics (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,7 +50,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 
 def get_connection(db_path: str) -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -56,3 +58,13 @@ def get_connection(db_path: str) -> sqlite3.Connection:
 def init_db(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA)
     conn.commit()
+
+
+def get_db():
+    settings = get_settings()
+    conn = get_connection(settings.db_path)
+    init_db(conn)
+    try:
+        yield conn
+    finally:
+        conn.close()
