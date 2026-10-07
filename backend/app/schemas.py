@@ -25,3 +25,17 @@ class Quiz(BaseModel):
     title: str
     questions: list
     is_published: bool
+
+
+class ProgressIn(BaseModel):
+    lesson_id: int | None = None
+    quiz_id: int | None = None
+    quiz_score: int | None = None
+
+
+class ProgressOut(BaseModel):
+    lesson_id: int | None = None
+    quiz_id: int | None = None
+    quiz_score: int | None = None
+    completed_at: str | None = None
+    last_activity_at: str

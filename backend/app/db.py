@@ -60,6 +60,21 @@ def init_db(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+def ensure_user(conn: sqlite3.Connection, telegram_id: int, now: str) -> None:
+    conn.execute(
+        "INSERT OR IGNORE INTO users (telegram_id, created_at, notifications_enabled) "
+        "VALUES (?, ?, 1)",
+        (telegram_id, now),
+    )
+    conn.commit()
+
+
+def delete_user_data(conn: sqlite3.Connection, telegram_id: int) -> None:
+    conn.execute("DELETE FROM progress WHERE telegram_id = ?", (telegram_id,))
+    conn.execute("DELETE FROM users WHERE telegram_id = ?", (telegram_id,))
+    conn.commit()
+
+
 def get_db():
     settings = get_settings()
     conn = get_connection(settings.db_path)
