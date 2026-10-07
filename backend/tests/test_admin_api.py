@@ -50,6 +50,39 @@ def non_admin_headers(make_init_data):
     return {"X-Telegram-Init-Data": data}
 
 
+def test_broadcast_requires_admin(client, non_admin_headers):
+    resp = client.post(
+        "/api/admin/broadcast", json={"text": "hi"}, headers=non_admin_headers
+    )
+    assert resp.status_code == 403
+
+
+def test_broadcast_sends_to_all_users(client, admin_headers, seed_db, monkeypatch):
+    from app.db import ensure_user
+
+    ensure_user(seed_db, 1, "2024-01-01T00:00:00+00:00")
+    ensure_user(seed_db, 2, "2024-01-01T00:00:00+00:00")
+
+    calls = []
+
+    def fake_post(url, json=None, timeout=10):
+        calls.append((url, json))
+
+        class Resp:
+            status_code = 200
+
+        return Resp()
+
+    monkeypatch.setattr("app.notifications.httpx.post", fake_post)
+
+    resp = client.post(
+        "/api/admin/broadcast", json={"text": "hi all"}, headers=admin_headers
+    )
+    assert resp.status_code == 200
+    assert resp.json() == {"sent": 2}
+    assert len(calls) == 2
+
+
 def test_create_topic_requires_admin(client, non_admin_headers):
     resp = client.post(
         "/api/admin/topics",

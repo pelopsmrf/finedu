@@ -3,9 +3,12 @@ import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from app.config import Settings, get_settings
 from app.converters import row_to_lesson, row_to_quiz, row_to_topic
 from app.db import get_db
+from app.notifications import broadcast as send_broadcast
 from app.schemas import (
+    BroadcastIn,
     Lesson,
     LessonCreate,
     Quiz,
@@ -207,6 +210,20 @@ def delete_quiz(
     conn.execute("DELETE FROM quizzes WHERE id = ?", (quiz_id,))
     conn.commit()
     return {"deleted": True}
+
+
+# --- Broadcast ----------------------------------------------------------------
+
+
+@router.post("/broadcast")
+def broadcast_endpoint(
+    payload: BroadcastIn,
+    conn: sqlite3.Connection = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    _: dict = Depends(require_admin),
+) -> dict:
+    sent = send_broadcast(conn, settings, payload.text, payload.only_inactive_days)
+    return {"sent": sent}
 
 
 # --- Stats -------------------------------------------------------------------
