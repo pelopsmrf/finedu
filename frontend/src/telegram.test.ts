@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, test } from "vitest";
-import { getInitData, isTelegramEnv } from "./telegram";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { getInitData, initTelegramApp, isTelegramEnv } from "./telegram";
 
 afterEach(() => {
   delete (window as any).Telegram;
@@ -20,5 +20,20 @@ describe("telegram environment detection", () => {
   test("returns null when initData is an empty string", () => {
     (window as any).Telegram = { WebApp: { initData: "" } };
     expect(getInitData()).toBeNull();
+  });
+});
+
+describe("initTelegramApp", () => {
+  test("calls ready() and expand() when Telegram WebApp is present", () => {
+    const ready = vi.fn();
+    const expand = vi.fn();
+    (window as any).Telegram = { WebApp: { initData: "abc", ready, expand } };
+    initTelegramApp();
+    expect(ready).toHaveBeenCalledOnce();
+    expect(expand).toHaveBeenCalledOnce();
+  });
+
+  test("does nothing outside Telegram", () => {
+    expect(() => initTelegramApp()).not.toThrow();
   });
 });

@@ -43,6 +43,24 @@ def test_accepts_valid_signature_admin_user(client, make_init_data):
     assert resp.status_code == 200
 
 
+def test_rejects_valid_signature_missing_user_field(client):
+    import hashlib
+    import hmac
+    import time
+    import urllib.parse
+
+    pairs = {"auth_date": str(int(time.time())), "query_id": "AAFnoUser"}
+    data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(pairs.items()))
+    secret_key = hmac.new(b"WebAppData", TEST_BOT_TOKEN.encode(), hashlib.sha256).digest()
+    pairs["hash"] = hmac.new(
+        secret_key, data_check_string.encode(), hashlib.sha256
+    ).hexdigest()
+    init_data = urllib.parse.urlencode(pairs)
+
+    resp = client.get("/api/admin/_probe", headers={"X-Telegram-Init-Data": init_data})
+    assert resp.status_code == 403
+
+
 def test_rejects_stale_init_data(make_init_data):
     old = make_init_data(
         user_id=ADMIN_ID, bot_token=TEST_BOT_TOKEN, auth_date_offset_seconds=-90000
