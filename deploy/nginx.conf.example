@@ -1,0 +1,31 @@
+# /etc/nginx/sites-available/moneyedu.ru
+# Obtain the certificate first (run once, after DNS A-record points here):
+#   sudo certbot certonly --nginx -d moneyedu.ru
+
+server {
+    listen 80;
+    server_name moneyedu.ru;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name moneyedu.ru;
+
+    ssl_certificate     /etc/letsencrypt/live/moneyedu.ru/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/moneyedu.ru/privkey.pem;
+
+    # Built frontend static files (npm run build output)
+    root /opt/finedu/frontend/dist;
+    index index.html;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location / {
+        try_files $uri /index.html;
+    }
+}

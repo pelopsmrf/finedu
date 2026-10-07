@@ -1,0 +1,15 @@
+[Unit]
+Description=Finedu Telegram bot (/start, /delete_my_data)
+After=network.target
+
+[Service]
+Type=simple
+User=finedu
+WorkingDirectory=/opt/finedu/backend
+EnvironmentFile=/etc/finedu/.env
+ExecStart=/opt/finedu/backend/venv/bin/python -m app.scripts.bot
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
