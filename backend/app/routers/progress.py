@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 
-from app.db import delete_user_data, ensure_user, get_db
-from app.schemas import ProgressIn, ProgressOut
+from app.db import delete_user_data, ensure_user, get_db, set_notifications
+from app.schemas import NotificationsIn, ProgressIn, ProgressOut
 from app.telegram_auth import require_verified_user
 
 router = APIRouter(prefix="/api")
@@ -74,3 +74,30 @@ def delete_my_data(
 ) -> dict:
     delete_user_data(conn, user["id"])
     return {"deleted": True}
+
+
+def _notifications_state(conn: sqlite3.Connection, telegram_id: int) -> dict:
+    ensure_user(conn, telegram_id, datetime.now(timezone.utc).isoformat())
+    row = conn.execute(
+        "SELECT notifications_enabled FROM users WHERE telegram_id = ?", (telegram_id,)
+    ).fetchone()
+    return {"enabled": bool(row["notifications_enabled"])}
+
+
+@router.get("/users/me/notifications")
+def get_my_notifications(
+    conn: sqlite3.Connection = Depends(get_db),
+    user: dict = Depends(require_verified_user),
+) -> dict:
+    return _notifications_state(conn, user["id"])
+
+
+@router.put("/users/me/notifications")
+def set_my_notifications(
+    payload: NotificationsIn,
+    conn: sqlite3.Connection = Depends(get_db),
+    user: dict = Depends(require_verified_user),
+) -> dict:
+    ensure_user(conn, user["id"], datetime.now(timezone.utc).isoformat())
+    set_notifications(conn, user["id"], payload.enabled)
+    return _notifications_state(conn, user["id"])

@@ -44,9 +44,16 @@ CREATE INDEX IF NOT EXISTS idx_progress_telegram_id ON progress(telegram_id);
 CREATE TABLE IF NOT EXISTS users (
     telegram_id INTEGER PRIMARY KEY,
     created_at TEXT NOT NULL,
-    notifications_enabled INTEGER NOT NULL DEFAULT 1
+    notifications_enabled INTEGER NOT NULL DEFAULT 1,
+    last_reminded_at TEXT
 );
 """
+
+# Columns added after the first release: (table, column, SQL type).
+# CREATE TABLE IF NOT EXISTS does not touch existing tables, so they are added here.
+MIGRATIONS = [
+    ("users", "last_reminded_at", "TEXT"),
+]
 
 
 def get_connection(db_path: str) -> sqlite3.Connection:
@@ -57,6 +64,10 @@ def get_connection(db_path: str) -> sqlite3.Connection:
 
 def init_db(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA)
+    for table, column, sql_type in MIGRATIONS:
+        existing = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        if column not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {sql_type}")
     conn.commit()
 
 
@@ -72,6 +83,14 @@ def ensure_user(conn: sqlite3.Connection, telegram_id: int, now: str) -> None:
 def delete_user_data(conn: sqlite3.Connection, telegram_id: int) -> None:
     conn.execute("DELETE FROM progress WHERE telegram_id = ?", (telegram_id,))
     conn.execute("DELETE FROM users WHERE telegram_id = ?", (telegram_id,))
+    conn.commit()
+
+
+def set_notifications(conn: sqlite3.Connection, telegram_id: int, enabled: bool) -> None:
+    conn.execute(
+        "UPDATE users SET notifications_enabled = ? WHERE telegram_id = ?",
+        (int(enabled), telegram_id),
+    )
     conn.commit()
 
 

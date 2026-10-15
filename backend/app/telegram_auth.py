@@ -6,7 +6,7 @@ import urllib.parse
 
 from fastapi import Depends, Header, HTTPException
 
-from app.config import Settings, get_settings
+from app.config import MIN_ADMIN_TOKEN_LENGTH, Settings, get_settings
 
 
 def verify_init_data(init_data: str, bot_token: str, max_age_seconds: int) -> dict | None:
@@ -67,10 +67,22 @@ def require_verified_user(
     return data["user"]
 
 
+def admin_token_matches(received: str, settings: Settings) -> bool:
+    expected = settings.admin_token
+    if not expected or len(expected) < MIN_ADMIN_TOKEN_LENGTH or not received:
+        return False
+    return hmac.compare_digest(received.encode(), expected.encode())
+
+
 def require_admin(
-    user: dict = Depends(require_verified_user),
+    x_admin_token: str = Header(default=""),
+    x_telegram_init_data: str = Header(default=""),
     settings: Settings = Depends(get_settings),
 ) -> dict:
+    """Admin = secret token from the server config (browser) or verified initData of ADMIN_ID (Telegram)."""
+    if admin_token_matches(x_admin_token, settings):
+        return {"id": settings.admin_id}
+    user = require_verified_user(x_telegram_init_data, settings)
     if user["id"] != settings.admin_id:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
