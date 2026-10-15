@@ -1,72 +1,60 @@
-import { useEffect, useState } from "react";
-import { AdminTopic, createTopic, listTopics, updateTopic } from "./adminApi";
+import { FormEvent, useState } from "react";
+import { Link } from "react-router-dom";
+import LoadStatus from "../components/LoadStatus";
+import { useLoad } from "../useLoad";
+import { createTopic, listTopics } from "./adminApi";
 
-export default function AdminTopics({ onForbidden }: { onForbidden: () => void }) {
-  const [topics, setTopics] = useState<AdminTopic[]>([]);
+export default function AdminTopics() {
+  const state = useLoad(listTopics, []);
   const [title, setTitle] = useState("");
+  const [error, setError] = useState("");
+  const topics = state.data ?? [];
 
-  const reload = () => {
-    listTopics()
-      .then(setTopics)
-      .catch((err) => {
-        if (err.message === "forbidden") onForbidden();
-      });
-  };
-
-  useEffect(() => {
-    reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleCreate = async () => {
+  const handleCreate = async (e: FormEvent) => {
+    e.preventDefault();
     if (!title.trim()) return;
+    setError("");
     try {
-      await createTopic({ title, order: topics.length, is_published: false });
+      const maxOrder = topics.reduce((m, t) => Math.max(m, t.order), 0);
+      await createTopic({ title: title.trim(), description: null, icon: "📘", order: maxOrder + 1, is_published: false });
       setTitle("");
-      reload();
-    } catch (err: any) {
-      if (err.message === "forbidden") onForbidden();
-    }
-  };
-
-  const togglePublished = async (topic: AdminTopic) => {
-    try {
-      await updateTopic(topic.id, { ...topic, is_published: !topic.is_published });
-      reload();
-    } catch (err: any) {
-      if (err.message === "forbidden") onForbidden();
+      state.reload();
+    } catch (err) {
+      setError((err as Error).message);
     }
   };
 
   return (
     <div className="page">
       <h1>Темы</h1>
-      <div>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Название темы" />
-        <button onClick={handleCreate}>+ Тема</button>
-      </div>
-      <table>
+      <LoadStatus state={state} />
+      <table className="admin-table">
         <thead>
           <tr>
+            <th>№</th>
             <th>Тема</th>
-            <th>Опубликована</th>
-            <th></th>
+            <th>Статус</th>
           </tr>
         </thead>
         <tbody>
           {topics.map((topic) => (
             <tr key={topic.id}>
-              <td>{topic.title}</td>
-              <td>{topic.is_published ? "✅" : "черновик"}</td>
+              <td>{topic.order}</td>
               <td>
-                <button onClick={() => togglePublished(topic)}>
-                  {topic.is_published ? "Снять с публикации" : "Опубликовать"}
-                </button>
+                <Link to={`/admin/topics/${topic.id}`}>
+                  {topic.icon} {topic.title}
+                </Link>
               </td>
+              <td>{topic.is_published ? "✅ опубликована" : "черновик"}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      <form className="admin-row" onSubmit={handleCreate}>
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Название новой темы" />
+        <button className="btn btn--primary">+ Тема</button>
+      </form>
+      {error && <p className="notice notice--error">{error}</p>}
     </div>
   );
 }

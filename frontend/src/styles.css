@@ -94,7 +94,388 @@ body {
   background: #f5f6fa;
 }
 
-.quiz-option--selected {
+.quiz-option.quiz-option--selected {
   background: #eafaf0;
   border-color: #4caf50;
+}
+
+/* --- Shared ----------------------------------------------------------------- */
+
+h1 {
+  font-size: 22px;
+  margin: 8px 0 12px;
+}
+
+h2 {
+  font-size: 18px;
+  margin: 24px 0 8px;
+}
+
+.muted {
+  color: #888;
+  font-size: 14px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #4caf50;
+  text-decoration: none;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 16px;
+  margin: 4px 0;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  background: #f5f6fa;
+  color: #111;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn--primary {
+  background: #4caf50;
+  border-color: #4caf50;
+  color: #fff;
+}
+
+.btn.btn--danger {
+  color: #c62828;
+  border-color: #f2c4c4;
+  background: #fff;
+}
+
+.btn--small {
+  padding: 4px 10px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+.notice {
+  padding: 12px;
+  border-radius: 12px;
+  margin: 12px 0;
+}
+
+.notice p {
+  margin: 6px 0 0;
+}
+
+.notice--ok {
+  background: #eafaf0;
+}
+
+.notice--error {
+  background: #fdecec;
+}
+
+.progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: #e8e8ee;
+  overflow: hidden;
+  margin: 8px 0 16px;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.3s ease;
+}
+
+/* --- Topics & lessons ----------------------------------------------------------- */
+
+.topic-card__icon {
+  font-size: 28px;
+}
+
+.topic-card__desc {
+  font-weight: 400;
+  font-size: 14px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.lesson-row__mark {
+  min-width: 24px;
+  text-align: center;
+  color: #888;
+}
+
+.lesson-card {
+  padding: 20px;
+  border-radius: 16px;
+  background: #f5f6fa;
+  min-height: 180px;
+  font-size: 17px;
+  line-height: 1.45;
+  animation: card-in 0.25s ease;
+}
+
+.lesson-card__emoji {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.lesson-card__image {
+  max-width: 100%;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.lesson-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.lesson-done {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.lesson-done__emoji {
+  font-size: 56px;
+  margin-top: 24px;
+}
+
+/* --- Quiz --------------------------------------------------------------------- */
+
+.quiz-question__text {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.quiz-option {
+  color: #111;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.quiz-option:disabled {
+  cursor: default;
+}
+
+.quiz-option.quiz-option--correct {
+  background: #eafaf0;
+  border-color: #4caf50;
+}
+
+.quiz-option.quiz-option--wrong {
+  background: #fdecec;
+  border-color: #e57373;
+}
+
+.quiz-option--dim {
+  opacity: 0.6;
+}
+
+.quiz-result {
+  text-align: center;
+}
+
+.quiz-result__score {
+  font-size: 40px;
+  font-weight: 700;
+  margin: 24px 0 8px;
+}
+
+.settings-row {
+  padding: 12px;
+  border-radius: 12px;
+  background: #f5f6fa;
+  margin: 12px 0;
+}
+
+/* --- Telegram theme: use the user's Telegram colours when available ------------------- */
+
+body {
+  background: var(--tg-theme-bg-color, #fff);
+  color: var(--tg-theme-text-color, #111);
+}
+
+.topic-card,
+.lesson-row,
+.lesson-card,
+.quiz-option,
+.settings-row,
+.btn {
+  background: var(--tg-theme-secondary-bg-color, #f5f6fa);
+  color: var(--tg-theme-text-color, #111);
+}
+
+.bottom-nav {
+  background: var(--tg-theme-bg-color, #fff);
+}
+
+.btn--primary {
+  background: var(--tg-theme-button-color, #4caf50);
+  border-color: var(--tg-theme-button-color, #4caf50);
+  color: var(--tg-theme-button-text-color, #fff);
+}
+
+.muted,
+.topic-card__desc {
+  color: var(--tg-theme-hint-color, #888);
+}
+
+/* --- Admin (desktop browser) ------------------------------------------------------- */
+
+.admin {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  flex-wrap: wrap;
+}
+
+.admin-nav a {
+  color: #555;
+  text-decoration: none;
+}
+
+.admin-nav a.active {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 12px;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: #555;
+}
+
+.admin-form label.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin input:not([type="checkbox"]):not([type="radio"]),
+.admin textarea,
+.admin-login input {
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: inherit;
+  flex: 1;
+  min-width: 0;
+}
+
+.admin textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.admin input.input--emoji {
+  flex: 0 0 80px;
+  text-align: center;
+}
+
+.editor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor-card {
+  border: 1px solid #e3e3ea;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editor-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.push-right {
+  margin-left: auto;
+}
+
+.sticky-save {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 8px 0;
+  border-top: 1px solid #eee;
+}
+
+.save-ok {
+  color: #2e7d32;
+}
+
+.save-error {
+  color: #c62828;
+}
+
+.admin-login form {
+  display: flex;
+  gap: 8px;
+  max-width: 480px;
 }

@@ -10,8 +10,12 @@ declare global {
   }
 }
 
+/**
+ * True only when actually opened inside Telegram. telegram-web-app.js creates
+ * window.Telegram.WebApp in any browser, but initData is filled only by Telegram.
+ */
 export function isTelegramEnv(): boolean {
-  return Boolean(window.Telegram?.WebApp);
+  return Boolean(window.Telegram?.WebApp?.initData);
 }
 
 export function getInitData(): string | null {

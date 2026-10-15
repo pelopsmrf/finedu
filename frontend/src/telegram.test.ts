@@ -21,6 +21,12 @@ describe("telegram environment detection", () => {
     (window as any).Telegram = { WebApp: { initData: "" } };
     expect(getInitData()).toBeNull();
   });
+
+  test("plain browser with telegram-web-app.js loaded is not Telegram", () => {
+    // The script defines WebApp everywhere; only Telegram fills initData.
+    (window as any).Telegram = { WebApp: { initData: "" } };
+    expect(isTelegramEnv()).toBe(false);
+  });
 });
 
 describe("initTelegramApp", () => {
