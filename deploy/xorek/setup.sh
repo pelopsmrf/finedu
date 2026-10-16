@@ -77,7 +77,8 @@ else
     fi
     cat "$NEW" > "$CADDYFILE"
     rm -f "$NEW"
-    systemctl reload caddy
+    # caddy.service here has no ExecReload, so restart (the agent's web UI blinks for a few seconds).
+    systemctl restart caddy
     echo "копия прежнего файла: $BACKUP"
 fi
 
