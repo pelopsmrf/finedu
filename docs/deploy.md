@@ -1,6 +1,62 @@
 # Finedu — установка и обновление
 
-## Первоначальная установка (cloud.ru + moneyedu.ru)
+## Текущий сервер: xorek (Франкфурт), рядом со средой агента
+
+Почему не cloud.ru: с российских серверов не открывается `api.telegram.org`,
+без него не работают бот, напоминания и рассылки.
+
+Как устроено:
+
+| Что | Где |
+|---|---|
+| Код (клон GitHub), venv, собранный фронтенд | `/srv/finedu` (владелец `cloudcli`) |
+| База SQLite | `/var/lib/finedu/finedu.db` (владелец `finedu`) |
+| Секреты | `/etc/finedu/finedu.env` (root:finedu, 640) |
+| API | служба `finedu`, `127.0.0.1:8010` |
+| Бот | служба `finedu-bot` |
+| Напоминания | `finedu-remind.timer`, каждый день в 10:00 МСК |
+| HTTPS и статика | Caddy, блок `moneyedu.ru` в `/etc/caddy/Caddyfile` |
+
+Файлы: `deploy/xorek/` (службы, блок Caddy, `setup.sh`, `update.sh`).
+
+### Установка (один раз, нужен root)
+
+1. **DNS** (Timeweb): A-записи `moneyedu.ru` и `www.moneyedu.ru` → `2.27.68.56`.
+2. Под root:
+   ```bash
+   sudo bash /srv/cloudcli/projects/finedu/finedu/deploy/xorek/setup.sh
+   ```
+   Скрипт спросит токен бота и ваш Telegram ID, создаст ключ админки и покажет
+   его один раз — сохраните. Дальше сам: пользователь `finedu`, код, сборка,
+   стартовые уроки, службы, блок Caddy (с проверкой и копией прежнего файла).
+   Повторный запуск безопасен.
+3. **BotFather**: Mini App URL и кнопка меню → `https://moneyedu.ru`.
+
+### Обновление кода (root не нужен)
+
+```bash
+bash /srv/finedu/deploy/xorek/update.sh
+```
+
+`git pull`, зависимости, сборка, затем перезапуск API и бота: скрипт касается
+файла `/srv/finedu/.restart`, а `finedu-restart.path` (systemd) перезапускает службы.
+
+### Полезное
+
+- Логи: `journalctl -u finedu -u finedu-bot -n 50`
+- Сменить токен/ключ: правка `/etc/finedu/finedu.env` под root, затем
+  `systemctl restart finedu finedu-bot`.
+- Caddy на этом сервере обслуживает и среду агента (cloudcli). Если хостинг
+  перезапишет `/etc/caddy/Caddyfile`, блок moneyedu.ru нужно вернуть:
+  повторить `setup.sh`.
+
+---
+
+## Другой вариант: отдельный сервер с nginx
+
+На серверах в РФ бот не будет работать (см. выше).
+
+### Первоначальная установка
 
 1. **DNS**: в панели Timeweb (где зарегистрирован `moneyedu.ru`) создайте
    A-запись `moneyedu.ru → <IP вашего сервера на cloud.ru>`.
@@ -66,7 +122,7 @@
 - Если ключ утёк — смените `FINEDU_ADMIN_TOKEN` в `/etc/finedu/.env` и
   выполните `sudo systemctl restart finedu`.
 
-## Обновление кода
+## Обновление кода (вариант с nginx)
 
 ```bash
 cd /opt/finedu
@@ -78,7 +134,8 @@ sudo systemctl restart finedu finedu-bot
 
 ## Напоминания пользователям
 
-Запускайте `python -m app.scripts.send_reminders` по расписанию (cron),
+На сервере xorek это делает `finedu-remind.timer`. На другом сервере запускайте
+`python -m app.scripts.send_reminders` по расписанию (cron),
 например раз в сутки. Cron не читает `/etc/finedu/.env` сам — подключаем его
 в команде (`crontab -e` под пользователем `finedu`):
 

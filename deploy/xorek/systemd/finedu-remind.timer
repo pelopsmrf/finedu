@@ -1,0 +1,9 @@
+[Unit]
+Description=Finedu reminders once a day at 10:00 server time (MSK)
+
+[Timer]
+OnCalendar=*-*-* 10:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,24 @@
+
+# --- finedu (moneyedu.ru), added by deploy/xorek/setup.sh ---
+moneyedu.ru {
+	encode gzip
+	handle /api/* {
+		reverse_proxy 127.0.0.1:8010
+	}
+	handle {
+		root * /srv/finedu/frontend/dist
+		# Hashed assets are cached forever; everything else (index.html) is rechecked,
+		# so users get a new version right after an update.
+		@assets path /assets/*
+		@pages not path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		header @pages Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+www.moneyedu.ru {
+	redir https://moneyedu.ru{uri} permanent
+}
+# --- end finedu ---

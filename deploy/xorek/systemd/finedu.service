@@ -1,0 +1,22 @@
+[Unit]
+Description=Finedu API (FastAPI/uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=finedu
+Group=finedu
+WorkingDirectory=/srv/finedu/backend
+EnvironmentFile=/etc/finedu/finedu.env
+ExecStart=/srv/finedu/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8010
+Restart=on-failure
+RestartSec=5
+# The app may write only to its database directory.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/finedu
+
+[Install]
+WantedBy=multi-user.target

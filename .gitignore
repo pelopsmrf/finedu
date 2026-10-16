@@ -7,3 +7,7 @@ dist/
 .superpowers/
 *.log
 .venv/
+venv/
+.restart
+frontend/dist.new/
+frontend/dist.old/

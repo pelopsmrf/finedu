@@ -1,0 +1,9 @@
+# Lets the deploy user (without root) restart finedu: update.sh touches /srv/finedu/.restart.
+[Unit]
+Description=Restart finedu when /srv/finedu/.restart changes
+
+[Path]
+PathChanged=/srv/finedu/.restart
+
+[Install]
+WantedBy=multi-user.target

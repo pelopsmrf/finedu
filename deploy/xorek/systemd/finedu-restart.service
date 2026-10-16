@@ -1,0 +1,6 @@
+[Unit]
+Description=Restart finedu API and bot
+
+[Service]
+Type=oneshot
+ExecStart=/bin/systemctl restart finedu.service finedu-bot.service
