@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 
+from app.achievements import BADGES, earned_badge_ids, summarize
 from app.db import delete_user_data, ensure_user, get_db, set_notifications
 from app.schemas import NotificationsIn, ProgressIn, ProgressOut
 from app.telegram_auth import require_verified_user
@@ -19,6 +20,7 @@ def submit_progress(
     telegram_id = user["id"]
     now = datetime.now(timezone.utc).isoformat()
     ensure_user(conn, telegram_id, now)
+    badges_before = earned_badge_ids(conn, telegram_id)
     completed_at = now if payload.lesson_id is not None else None
     conn.execute(
         "INSERT INTO progress "
@@ -34,12 +36,14 @@ def submit_progress(
         ),
     )
     conn.commit()
+    badges_after = earned_badge_ids(conn, telegram_id)
     return ProgressOut(
         lesson_id=payload.lesson_id,
         quiz_id=payload.quiz_id,
         quiz_score=payload.quiz_score,
         completed_at=completed_at,
         last_activity_at=now,
+        new_badges=[b for b in BADGES if b["id"] in badges_after - badges_before],
     )
 
 
@@ -48,23 +52,7 @@ def get_my_progress(
     conn: sqlite3.Connection = Depends(get_db),
     user: dict = Depends(require_verified_user),
 ) -> dict:
-    telegram_id = user["id"]
-    rows = conn.execute(
-        "SELECT lesson_id, completed_at, quiz_id, quiz_score, last_activity_at "
-        "FROM progress WHERE telegram_id = ?",
-        (telegram_id,),
-    ).fetchall()
-    completed_lessons = len(
-        {r["lesson_id"] for r in rows if r["lesson_id"] is not None and r["completed_at"]}
-    )
-    total_lessons = conn.execute(
-        "SELECT COUNT(*) FROM lessons WHERE is_published = 1"
-    ).fetchone()[0]
-    return {
-        "progress": [dict(r) for r in rows],
-        "completed_lessons": completed_lessons,
-        "total_lessons": total_lessons,
-    }
+    return summarize(conn, user["id"])
 
 
 @router.delete("/users/me")

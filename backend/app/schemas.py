@@ -91,6 +91,7 @@ class ProgressOut(BaseModel):
     quiz_score: int | None = None
     completed_at: str | None = None
     last_activity_at: str
+    new_badges: list[dict] = []
 
 
 class NotificationsIn(BaseModel):

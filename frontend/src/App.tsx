@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import BadgeToast from "./components/BadgeToast";
 import BottomNav from "./components/BottomNav";
 import TopicsPage from "./pages/TopicsPage";
 import LessonsPage from "./pages/LessonsPage";
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
         </Routes>
       </main>
+      <BadgeToast />
       <BottomNav />
     </div>
   );

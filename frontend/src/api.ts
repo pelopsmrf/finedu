@@ -50,7 +50,28 @@ export interface ProgressSummary {
   }>;
   completed_lessons: number;
   total_lessons: number;
+  topics: TopicProgress[];
+  badges: Badge[];
 }
+
+export interface TopicProgress {
+  topic_id: number;
+  title: string;
+  icon: string | null;
+  completed: number;
+  total: number;
+}
+
+export interface Badge {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+  earned?: boolean;
+}
+
+/** Fired on window when the user earns badges; detail is Badge[]. */
+export const NEW_BADGES_EVENT = "finedu:new-badges";
 
 export class ApiError extends Error {
   constructor(public status: number, path: string) {
@@ -113,11 +134,16 @@ export async function submitProgress(payload: {
     return;
   }
   try {
-    await fetch("/api/progress", {
+    const resp = await fetch("/api/progress", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...telegramHeaders() },
       body: JSON.stringify(payload),
     });
+    if (!resp.ok) return;
+    const { new_badges } = (await resp.json()) as { new_badges?: Badge[] };
+    if (new_badges?.length) {
+      window.dispatchEvent(new CustomEvent(NEW_BADGES_EVENT, { detail: new_badges }));
+    }
   } catch {
     // Progress is a bonus: a network hiccup must not break the lesson.
   }
@@ -152,4 +178,15 @@ export function setNotifications(enabled: boolean): Promise<{ enabled: boolean }
     headers: { "Content-Type": "application/json", ...telegramHeaders() },
     body: JSON.stringify({ enabled }),
   });
+}
+
+/** Progress per topic for the current Telegram user (empty outside Telegram or on error). */
+export async function getTopicProgress(): Promise<Map<number, TopicProgress>> {
+  if (!getInitData()) return new Map();
+  try {
+    const summary = await getProgress();
+    return new Map(summary.topics.map((t) => [t.topic_id, t]));
+  } catch {
+    return new Map();
+  }
 }
